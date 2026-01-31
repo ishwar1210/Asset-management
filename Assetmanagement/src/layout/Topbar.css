@@ -1,0 +1,127 @@
+.topbar {
+  height: 70px;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 800;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  /* background-image: url('../assets/imgi_3_kumbh-mela-feasts-festivities-discuss.jpeg'); */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+}
+
+.topbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #7cb8df 15%, #0099FF 85%);
+  /* backdrop-filter: blur(8px); */
+  border-radius: 20px;
+  z-index: -1;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.topbar-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 2;
+  margin-right: 10px;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #0099FF;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  white-space: nowrap;
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+}
+
+.logout-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 15px;
+    height: 60px;
+  }
+
+  .topbar-title {
+    font-size: 18px;
+  }
+
+  .logout-button {
+    padding: 8px 15px;
+    font-size: 13px;
+  }
+
+  .logout-button span {
+    display: none;
+  }
+
+  .logout-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0 10px;
+    height: 55px;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+  }
+
+  .logout-button {
+    padding: 8px 12px;
+  }
+}
