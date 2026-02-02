@@ -121,6 +121,36 @@
   color: #6b7280;
 }
 
+/* Button Styles */
+.btn-download {
+  background: linear-gradient(135deg, #0099ff 20%, #7cb8df 80%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 153, 255, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+  justify-content: space-between;
+}
+
+.btn-download:hover {
+  background: linear-gradient(135deg, #0099ff 10%, #7cb8df 90%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 153, 255, 0.25);
+}
+
+.btn-download:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 153, 255, 0.18);
+}
+
 @media (max-width: 768px) {
   .reconciliation-container {
     padding: 12px;

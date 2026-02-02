@@ -60,6 +60,8 @@ function RFIDbinding() {
   const [boundAssetsList, setBoundAssetsList] = useState<any[]>([]);
   const [uploadLoading, setUploadLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [] = useState(false);
+  const [, setAllApiData] = useState<any[]>([]);
 
   // Function to encrypt serial number for QR code
   const encryptSerialNo = (serialNo: string): string => {
@@ -207,33 +209,92 @@ function RFIDbinding() {
         data = response.data;
       }
       
-      // Filter by selected asset name and status = 1 (completed)
+      console.log('\n=== RAW API DATA ===');
+      console.log('Total items in API:', data.length);
+      console.log('All items:', data);
+      
+      // Store all API data for debug view
+      setAllApiData(data);
+      
+      // Filter by selected asset name ONLY (show all statuses)
       const boundForAsset = data.filter((item: any) => 
-        item.assetName === assetName && item.status === 1
+        item.assetName === assetName
       );
       
-      console.log('Bound assets for', assetName, ':', boundForAsset);
-      console.log('Already bound count:', boundForAsset.length);
+      // Count only completed ones for quantity calculation
+      const completedForAsset = boundForAsset.filter((item: any) => item.status === 1);
       
-      // Store bound assets for display
+      console.log('\n=== FILTERED DATA ===');
+      console.log('Asset Name Filter:', assetName);
+      console.log('All assets (any status):', boundForAsset);
+      console.log('Completed assets (status=1):', completedForAsset);
+      console.log('Total count:', boundForAsset.length);
+      console.log('Completed count:', completedForAsset.length);
+      
+      // Store ALL bound assets for display (not just completed)
       setBoundAssetsList(boundForAsset);
       
-      // Set quantity information
+      // Set quantity information - count ALL entries (pending + completed)
       const bound = boundForAsset.length;
       const remaining = totalQuantity - bound;
-      
       setTotalQty(totalQuantity);
       setBoundQty(bound);
       setRemainingQty(remaining);
       setCurrentBindingIndex(0);
-      
+
       if (remaining > 0) {
-        // Generate only ONE binding row to start
-        const timestamp = Date.now();
-        const serialNo = `SYS-${assetName.substring(0, 3).toUpperCase()}-${String(bound + 1).padStart(4, '0')}`;
+        // Find the highest serial number already bound for this asset
+        let maxSerial = 0;
+        const serialPrefix = `SYS-${assetName.substring(0, 3).toUpperCase()}-`;
+        console.log('\n=== Initial Serial Calculation ===');
+        console.log('Serial Prefix:', serialPrefix);
+        console.log('All Bound Assets Count:', boundForAsset.length);
+        console.log('All Serial Numbers (any status):', boundForAsset.map((item: any) => item.serialNo));
+        
+        // Extract all serial numbers and parse them (from ALL statuses)
+        const serialNumbers: number[] = [];
+        boundForAsset.forEach((item: any) => {
+          console.log(`\nProcessing item:`, item);
+          if (item.serialNo) {
+            console.log(`  Serial: ${item.serialNo}`);
+            console.log(`  Starts with prefix: ${item.serialNo.startsWith(serialPrefix)}`);
+            
+            if (item.serialNo.startsWith(serialPrefix)) {
+              const numPart = item.serialNo.replace(serialPrefix, '').trim();
+              console.log(`  Number part after removing prefix: "${numPart}"`);
+              
+              // Remove leading zeros and parse
+              const num = parseInt(numPart, 10);
+              console.log(`  Parsed number: ${num}`);
+              
+              if (!isNaN(num)) {
+                serialNumbers.push(num);
+                console.log(`  ✓ Added to array: ${num}`);
+                if (num > maxSerial) {
+                  maxSerial = num;
+                  console.log(`  ✓ New maxSerial: ${maxSerial}`);
+                }
+              } else {
+                console.log(`  ✗ Failed to parse number`);
+              }
+            }
+          } else {
+            console.log(`  ✗ No serial number`);
+          }
+        });
+        
+        console.log('\n=== Serial Number Summary ===');
+        console.log('All parsed serial numbers (from ALL statuses):', serialNumbers);
+        console.log('Max Serial Found:', maxSerial);
+        
+        const nextSerialNum = maxSerial + 1;
+        const serialNo = `${serialPrefix}${String(nextSerialNum).padStart(4, '0')}`;
+        console.log('Next Serial Number (max + 1):', nextSerialNum);
+        console.log('Generated Serial:', serialNo);
+        console.log('=== End Initial Serial Calculation ===\n');
+        
         const generatedQrCode = encryptSerialNo(serialNo);
         const decryptedQrCode = decryptQrCode(generatedQrCode);
-        
         // Get assetId from mapping
         const assetId = assetMapping.get(assetName) || 0;
         console.log('Asset ID from mapping:', assetId);
@@ -241,7 +302,6 @@ function RFIDbinding() {
         console.log('Generated QR Code (Encrypted):', generatedQrCode);
         console.log('Decrypted QR Code (Verification):', decryptedQrCode);
         console.log('Encryption Valid:', serialNo === decryptedQrCode);
-        
         const firstBinding: RFIDBinding = {
           assetTaggingId: 0,
           assetId: assetId,
@@ -251,7 +311,7 @@ function RFIDbinding() {
           qrCode: generatedQrCode,
           status: 0,
           assetStatus: 'Active',
-          uniqueKey: `binding-${timestamp}-0`,
+          uniqueKey: `binding-${Date.now()}-0`,
         };
         console.log('Generated First Binding:', firstBinding);
         setBindings([firstBinding]);
@@ -270,16 +330,40 @@ function RFIDbinding() {
       setRemainingQty(remaining);
       setCurrentBindingIndex(0);
       
-      generateFirstBinding(assetName, bound);
+      generateFirstBinding(assetName);
     }
   };
 
-  const generateFirstBinding = (assetName: string, bound: number) => {
-    const timestamp = Date.now();
-    const serialNo = `SYS-${assetName.substring(0, 3).toUpperCase()}-${String(bound + 1).padStart(4, '0')}`;
+  const generateFirstBinding = (assetName: string) => {
+    // Find the highest serial number already bound for this asset
+    // Start from 0 so we always scan existing serials to determine the true max
+    console.log('\n=== generateFirstBinding (Error Fallback) ===');
+    let maxSerial = 0;
+    const serialPrefix = `SYS-${assetName.substring(0, 3).toUpperCase()}-`;
+    console.log('Serial Prefix:', serialPrefix);
+    console.log('Bound Assets List:', boundAssetsList);
+    
+    if (boundAssetsList && boundAssetsList.length > 0) {
+      boundAssetsList.forEach((item: any) => {
+        if (item.serialNo && item.serialNo.startsWith(serialPrefix)) {
+          const numPart = item.serialNo.replace(serialPrefix, '');
+          const num = parseInt(numPart, 10);
+          console.log(`Parsing: ${item.serialNo} -> ${numPart} -> ${num}`);
+          if (!isNaN(num) && num > maxSerial) {
+            maxSerial = num;
+          }
+        }
+      });
+    }
+    
+    const nextSerialNum = maxSerial + 1;
+    const serialNo = `${serialPrefix}${String(nextSerialNum).padStart(4, '0')}`;
+    console.log('Max Serial:', maxSerial);
+    console.log('Next Serial:', serialNo);
+    console.log('=== End generateFirstBinding ===\n');
+    
     const generatedQrCode = encryptSerialNo(serialNo);
     const assetId = assetMapping.get(assetName) || 0;
-    
     const firstBinding: RFIDBinding = {
       assetTaggingId: 0,
       assetId: assetId,
@@ -289,7 +373,7 @@ function RFIDbinding() {
       qrCode: generatedQrCode,
       status: 0,
       assetStatus: 'Active',
-      uniqueKey: `binding-${timestamp}-0`,
+      uniqueKey: `binding-${Date.now()}-0`,
     };
     setBindings([firstBinding]);
   };
@@ -344,26 +428,113 @@ function RFIDbinding() {
       await bindRFID(confirmedBinding);
 
       setSuccessMessage('RFID Binding confirmed successfully!');
+
+      // Refetch bound assets from API to get the latest data
+      const response = await getAssetTaggingList();
+      console.log('Refetched Asset Tagging List after binding:', response);
       
-      // Update quantities
-      const newBoundQty = boundQty + 1;
+      let data = [];
+      if (Array.isArray(response)) {
+        data = response;
+      } else if (response.data && Array.isArray(response.data)) {
+        data = response.data;
+      }
+      
+      // Filter by selected asset name and status = 1 (completed)
+      const freshBoundForAsset = data.filter((item: any) => 
+        item.assetName === selectedAsset?.assetName && item.status === 1
+      );
+      
+      // Also get all items for display (any status)
+      const allForAsset = data.filter((item: any) => 
+        item.assetName === selectedAsset?.assetName
+      );
+      
+      console.log('Fresh bound assets from API:', freshBoundForAsset);
+      console.log('Updated bound count:', freshBoundForAsset.length);
+      
+      // Update bound assets list with ALL items (for display)
+      setBoundAssetsList(allForAsset);
+
+      // Update quantities based on fresh API data - count ALL entries
+      const newBoundQty = allForAsset.length;
       const newRemainingQty = totalQty - newBoundQty;
       setBoundQty(newBoundQty);
       setRemainingQty(newRemainingQty);
+
+      // Check if more bindings are needed (based on completed only)
+      const completedCount = freshBoundForAsset.length;
+      const actualRemaining = totalQty - completedCount;
       
-      // Check if more bindings are needed
-      if (newRemainingQty > 0) {
-        // Generate next binding row
+      if (actualRemaining > 0) {
+        // Generate next binding row using fresh API data
         setTimeout(() => {
           const timestamp = Date.now();
           const nextIndex = currentBindingIndex + 1;
-          const serialNo = `SYS-${selectedAsset?.assetName.substring(0, 3).toUpperCase()}-${String(newBoundQty + 1).padStart(4, '0')}`;
+          
+          console.log('\n=== After Binding - Serial Calculation ===');
+          console.log('Completed Assets Count:', freshBoundForAsset.length);
+          console.log('All Assets Count (any status):', allForAsset.length);
+          console.log('All Assets:', allForAsset);
+          
+          // Find the highest serial number from ALL assets (any status)
+          let maxSerial = 0;
+          const serialPrefix = `SYS-${selectedAsset?.assetName.substring(0, 3).toUpperCase()}-`;
+          console.log('Serial Prefix:', serialPrefix);
+          
+          // Extract all serial numbers from ALL items (not just completed)
+          const serialNumbers: number[] = [];
+          
+          if (allForAsset && allForAsset.length > 0) {
+            allForAsset.forEach((item: any) => {
+              console.log(`\nChecking item:`);
+              console.log(`  AssetName: ${item.assetName}`);
+              console.log(`  SerialNo: ${item.serialNo}`);
+              console.log(`  Status: ${item.status}`);
+              
+              if (item.serialNo) {
+                const startsWithPrefix = item.serialNo.startsWith(serialPrefix);
+                console.log(`  Starts with "${serialPrefix}": ${startsWithPrefix}`);
+                
+                if (startsWithPrefix) {
+                  const numPart = item.serialNo.replace(serialPrefix, '').trim();
+                  console.log(`  Number part: "${numPart}"`);
+                  
+                  const num = parseInt(numPart, 10);
+                  console.log(`  Parsed integer: ${num}`);
+                  
+                  if (!isNaN(num)) {
+                    serialNumbers.push(num);
+                    console.log(`  ✓ Valid number added: ${num}`);
+                    if (num > maxSerial) {
+                      maxSerial = num;
+                      console.log(`  ✓ Updated maxSerial to: ${maxSerial}`);
+                    }
+                  } else {
+                    console.log(`  ✗ Not a valid number`);
+                  }
+                }
+              } else {
+                console.log(`  ✗ No serial number`);
+              }
+            });
+          }
+          
+          console.log('\n=== Serial Number Summary ===');
+          console.log('All serial numbers found (ANY status):', serialNumbers.sort((a, b) => a - b));
+          console.log('Max Serial from ALL assets:', maxSerial);
+          
+          const nextSerialNum = maxSerial + 1;
+          const serialNo = `${serialPrefix}${String(nextSerialNum).padStart(4, '0')}`;
           const generatedQrCode = encryptSerialNo(serialNo);
           const assetId = assetMapping.get(selectedAsset?.assetName || '') || 0;
-          console.log('Next Asset ID from mapping:', assetId);
-          console.log('Next Serial No:', serialNo);
-          console.log('Next QR Code:', generatedQrCode);
           
+          console.log('\nFinal Calculation:');
+          console.log('  Next Serial Number (from max of ALL):', nextSerialNum);
+          console.log('  Generated Serial:', serialNo);
+          console.log('  Asset ID:', assetId);
+          console.log('  QR Code:', generatedQrCode);
+          console.log('=== End Serial Calculation ===\n');
           const nextBinding: RFIDBinding = {
             assetTaggingId: 0,
             assetId: assetId,

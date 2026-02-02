@@ -251,9 +251,10 @@
   font-size: 14px;
 }
 
+
 .allocation-table thead {
-  background: #FF7043;
-  color: white;
+  background: linear-gradient(135deg, #0099ff 20%, #7cb8df 80%);
+  color: #fff;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -263,10 +264,11 @@
   padding: 14px 16px;
   text-align: left;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0.3px;
   white-space: nowrap;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
 
 .allocation-table thead th:last-child {
@@ -300,38 +302,72 @@
 }
 
 /* Button Styles */
+
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #0099ff 20%, #7cb8df 80%);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-primary:hover {
+  background: linear-gradient(90deg, #2196f3 0%, #4fc3f7 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
 }
 
 .btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.18);
+}
+
+/* For Add GRN button specifically if needed */
+.btn-add-grn {
+  background: linear-gradient(90deg, #4fc3f7 0%, #2196f3 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+.btn-add-grn:hover {
+  background: linear-gradient(90deg, #2196f3 0%, #4fc3f7 100%);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+  transform: translateY(-2px);
+}
+.btn-add-grn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.18);
 }
 
 /* Download button specific color */
+
 .btn-download {
-  background: #FF7043 !important;
-  box-shadow: 0 2px 8px rgba(255, 112, 67, 0.18) !important;
+  background: linear-gradient(135deg, #0099ff 20%, #7cb8df 80%) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 153, 255, 0.18) !important;
 }
 
 .btn-download:hover {
+  background: linear-gradient(135deg, #0099ff 10%, #7cb8df 90%) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 112, 67, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 153, 255, 0.25) !important;
 }
 
 /* Responsive Design */

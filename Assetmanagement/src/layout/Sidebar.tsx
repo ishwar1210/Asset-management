@@ -26,6 +26,8 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
 
   const handleNavigate = (page: string) => {
     if (onNavigate) onNavigate(page);
+    // Close dropdown if navigating to dashboard
+    if (page === 'dashboard') setOpenDropdown(null);
     closeMobileSidebar();
   };
 
@@ -93,22 +95,38 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
             </div>
             <ul className={`submenu ${openDropdown === 'master' ? 'open' : ''}`}>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('rolemaster'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'rolemaster' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('rolemaster'); }}
+                >
                   Role
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('usermaster'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'usermaster' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('usermaster'); }}
+                >
                   User
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('category'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'category' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('category'); }}
+                >
                   Category
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('areamaster'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'areamaster' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('areamaster'); }}
+                >
                   Area
                 </a>
               </li>
@@ -144,22 +162,40 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
             </div>
             <ul className={`submenu ${openDropdown === 'assetallocation' ? 'open' : ''}`}>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('unitofmeasurement'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'unitofmeasurement' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('unitofmeasurement'); }}
+                >
                   Unit of Measurement
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('assettype'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'assettype' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('assettype'); }}
+                >
                   Asset Type
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('asset'); }}>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'asset' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('asset'); }}
+                >
                   Asset 
                 </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('assetallocation'); }}>Asset Allocation</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'assetallocation' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('assetallocation'); }}
+                >
+                  Asset Allocation
+                </a>
               </li>
             </ul>
           </li>
@@ -186,10 +222,22 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
             </div>
             <ul className={`submenu ${openDropdown === 'vendor' ? 'open' : ''}`}>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('vendormaster'); }}>Add Vendor</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'vendormaster' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('vendormaster'); }}
+                >
+                  Add Vendor
+                </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('grn'); }}>Good Receipt Note (GRN)</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'grn' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('grn'); }}
+                >
+                  Good Receipt Note (GRN)
+                </a>
               </li>
             </ul>
           </li>
@@ -217,7 +265,13 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
             </div>
             <ul className={`submenu ${openDropdown === 'rfid' ? 'open' : ''}`}>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('rfidbinding'); }}>Asset Registration</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'rfidbinding' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('rfidbinding'); }}
+                >
+                  Asset Registration
+                </a>
               </li>
             </ul>
           </li>
@@ -246,16 +300,40 @@ function Sidebar({ onNavigate, currentPage }: SidebarProps) {
             </div>
             <ul className={`submenu ${openDropdown === 'report' ? 'open' : ''}`}>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('allocationreport'); }}>Asset Allocation Report</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'allocationreport' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('allocationreport'); }}
+                >
+                  Asset Allocation Report
+                </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('rfidbindingreport'); }}>Asset Registration Report</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'rfidbindingreport' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('rfidbindingreport'); }}
+                >
+                  Asset Registration Report
+                </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('reconciliation'); }}> Asset Reconciliation Report</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'reconciliation' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('reconciliation'); }}
+                >
+                  Asset Reconciliation Report
+                </a>
               </li>
               <li className="submenu-item">
-                <a href="#" className="submenu-link" onClick={(e) => { e.preventDefault(); handleNavigate('deploymentreport'); }}>Deployment Report</a>
+                <a 
+                  href="#" 
+                  className={`submenu-link ${currentPage === 'deploymentreport' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigate('deploymentreport'); }}
+                >
+                  Deployment Report
+                </a>
               </li>
             </ul>
           </li>

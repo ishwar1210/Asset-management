@@ -1,9 +1,8 @@
 
 
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import './Reconciliation.css';
-import { getAssetList, getAreaTypeList } from '../api/endpoint';
+import { getAssetList, getAreaTypeList, getReconciliationList } from '../api/endpoint';
 
 interface ReconciliationItem {
   assetReconciliationId: number;
@@ -32,6 +31,16 @@ const Reconciliation: React.FC = () => {
   const [areaList, setAreaList] = useState<{ areaTypeId: number, areaTypeName: string }[]>([]);
   const [assetList, setAssetList] = useState<{ assetId: number, assetName: string }[]>([]);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  // Helper to format dates as dd/mm/yyyy (handles empty/null)
+  const formatDate = (value?: string | null) => {
+    if (!value) return 'N/A';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    const day = `${d.getDate()}`.padStart(2, '0');
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
   // Download Excel (CSV)
   const downloadExcel = () => {
     const headers = ['S.No', 'Asset', 'Area', 'RFID No', 'Date', 'Condition', 'Status'];
@@ -42,7 +51,7 @@ const Reconciliation: React.FC = () => {
         assetMap[item.assetId] || 'N/A',
         item.areaName || 'N/A',
         item.rfidNo || 'N/A',
-        item.reconciliationDate || 'N/A',
+        formatDate(item.reconciliationDate),
         item.assetCondition || 'N/A',
         item.status || 'N/A'
       ];
@@ -104,7 +113,7 @@ const Reconciliation: React.FC = () => {
                 <td>${assetMap[item.assetId] || 'N/A'}</td>
                 <td>${item.areaName || 'N/A'}</td>
                 <td>${item.rfidNo || 'N/A'}</td>
-                <td>${item.reconciliationDate || 'N/A'}</td>
+                <td>${formatDate(item.reconciliationDate)}</td>
                 <td>${item.assetCondition || 'N/A'}</td>
                 <td>${item.status || 'N/A'}</td>
               </tr>
@@ -126,10 +135,16 @@ const Reconciliation: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch reconciliation data
-        const response = await axios.get('http://103.182.196.254:7878/api/AssetReconciliation/GetReconciliationList');
-        setData(response.data);
-        setFiltered(response.data);
+        // Fetch reconciliation data using centralized endpoint
+        const reconResponse = await getReconciliationList();
+        let reconArray = [];
+        if (Array.isArray(reconResponse)) {
+          reconArray = reconResponse;
+        } else if (reconResponse?.data && Array.isArray(reconResponse.data)) {
+          reconArray = reconResponse.data;
+        }
+        setData(reconArray);
+        setFiltered(reconArray);
 
         // Fetch asset list and build assetId to assetName map
         const assetResponse = await getAssetList();
@@ -169,18 +184,39 @@ const Reconciliation: React.FC = () => {
   // Filter handler
   useEffect(() => {
     let filteredData = data;
+    
     if (fromDate) {
-      filteredData = filteredData.filter(d => new Date(d.reconciliationDate) >= new Date(fromDate));
+      filteredData = filteredData.filter(d => {
+        if (!d.reconciliationDate) return false;
+        const itemDate = new Date(d.reconciliationDate);
+        const filterFromDate = new Date(fromDate);
+        // Set time to start of day for accurate comparison
+        itemDate.setHours(0, 0, 0, 0);
+        filterFromDate.setHours(0, 0, 0, 0);
+        return itemDate >= filterFromDate;
+      });
     }
+    
     if (toDate) {
-      filteredData = filteredData.filter(d => new Date(d.reconciliationDate) <= new Date(toDate));
+      filteredData = filteredData.filter(d => {
+        if (!d.reconciliationDate) return false;
+        const itemDate = new Date(d.reconciliationDate);
+        const filterToDate = new Date(toDate);
+        // Set time to end of day for accurate comparison
+        itemDate.setHours(0, 0, 0, 0);
+        filterToDate.setHours(23, 59, 59, 999);
+        return itemDate <= filterToDate;
+      });
     }
+    
     if (area && area !== 'All Areas') {
       filteredData = filteredData.filter(d => d.areaId === Number(area));
     }
+    
     if (asset && asset !== 'All Assets') {
       filteredData = filteredData.filter(d => d.assetId === Number(asset));
     }
+    
     setFiltered(filteredData);
   }, [fromDate, toDate, area, asset, data]);
 
@@ -190,15 +226,61 @@ const Reconciliation: React.FC = () => {
         <h2>Reconciliation Report</h2>
       </div>
       <div className="reconciliation-content">
-        <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            {/* Filter section will be here (see below) */}
+        <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+          <div className="filter-group" style={{ flex: 1 }}>
+            <label>From Date</label>
+            <input
+              type="date"
+              className="filter-control"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              placeholder="dd-mm-yyyy"
+            />
           </div>
-          <div style={{ position: 'relative', minWidth: 160, marginLeft: 16 }}>
+          <div className="filter-group" style={{ flex: 1 }}>
+            <label>To Date</label>
+            <input
+              type="date"
+              className="filter-control"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              placeholder="dd-mm-yyyy"
+            />
+          </div>
+          <div className="filter-group" style={{ flex: 1 }}>
+            <label>Area</label>
+            <select
+              className="filter-control"
+              value={area}
+              onChange={e => setArea(e.target.value)}
+            >
+              <option value="">All Areas</option>
+              {areaList.length === 0 && <option value="N/A">N/A</option>}
+              {areaList.map(a => (
+                <option key={a.areaTypeId} value={a.areaTypeId}>{a.areaTypeName || 'N/A'}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group" style={{ flex: 1 }}>
+            <label>Asset</label>
+            <select
+              className="filter-control"
+              value={asset}
+              onChange={e => setAsset(e.target.value)}
+            >
+              <option value="">All Assets</option>
+              {assetList.length === 0 && <option value="N/A">N/A</option>}
+              {assetList.map(a => (
+                <option key={a.assetId} value={a.assetId}>{a.assetName || 'N/A'}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-              className="btn-primary btn-download"
-              style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              className="btn-download"
             >
               <span>Download</span>
               <span>▼</span>
@@ -260,54 +342,6 @@ const Reconciliation: React.FC = () => {
             )}
           </div>
         </div>
-        <div className="filter-section" style={{ display: 'flex', flex: 1, gap: 24 }}>
-          <div className="filter-group">
-            <label>From Date</label>
-            <input
-              type="date"
-              className="filter-control"
-              value={fromDate}
-              onChange={e => setFromDate(e.target.value)}
-            />
-          </div>
-          <div className="filter-group">
-            <label>To Date</label>
-            <input
-              type="date"
-              className="filter-control"
-              value={toDate}
-              onChange={e => setToDate(e.target.value)}
-            />
-          </div>
-          <div className="filter-group">
-            <label>Area</label>
-            <select
-              className="filter-control"
-              value={area}
-              onChange={e => setArea(e.target.value)}
-            >
-              <option value="">All Areas</option>
-              {areaList.length === 0 && <option value="N/A">N/A</option>}
-              {areaList.map(a => (
-                <option key={a.areaTypeId} value={a.areaTypeId}>{a.areaTypeName || 'N/A'}</option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label>Asset</label>
-            <select
-              className="filter-control"
-              value={asset}
-              onChange={e => setAsset(e.target.value)}
-            >
-              <option value="">All Assets</option>
-              {assetList.length === 0 && <option value="N/A">N/A</option>}
-              {assetList.map(a => (
-                <option key={a.assetId} value={a.assetId}>{a.assetName || 'N/A'}</option>
-              ))}
-            </select>
-          </div>
-        </div>
         <div className="table-container">
           {loading ? (
             <p>Loading...</p>
@@ -333,7 +367,7 @@ const Reconciliation: React.FC = () => {
                     <td>{assetMap[item.assetId] || 'N/A'}</td>
                     <td>{item.areaName || 'N/A'}</td>
                     <td>{item.rfidNo || 'N/A'}</td>
-                    <td>{item.reconciliationDate ? item.reconciliationDate : 'N/A'}</td>
+                    <td>{formatDate(item.reconciliationDate)}</td>
                     <td>{item.assetCondition || 'N/A'}</td>
                     <td>{item.status || 'N/A'}</td>
                   </tr>

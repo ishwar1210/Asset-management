@@ -318,6 +318,16 @@ export const getAssetList = async () => {
   }
 };
 
+// Reconciliation APIs
+export const getReconciliationList = async () => {
+  try {
+    const response = await axiosInstance.get('/AssetReconciliation/GetReconciliationList');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getAssetById = async (id: number) => {
   try {
     const response = await axiosInstance.get(`/Asset/GetAssetById/${id}`);

@@ -45,9 +45,28 @@ function Dashboard() {
 
   const COLORS = ['#3b82f6', '#10b981'];
 
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Calculate Allocation Status (use totalAssets from GRN as denominator)
+  useEffect(() => {
+    if (totalAssets > 0) {
+      const assigned = allocableCount;
+      const assignedPercent = Math.max(0, Math.min(100, Math.round((assigned / totalAssets) * 100)));
+      const unassignedPercent = Math.max(0, 100 - assignedPercent);
+      setAllocationData([
+        { name: 'Assigned', value: assignedPercent },
+        { name: 'Unassigned', value: unassignedPercent }
+      ]);
+    } else {
+      setAllocationData([
+        { name: 'Assigned', value: 0 },
+        { name: 'Unassigned', value: 0 }
+      ]);
+    }
+  }, [totalAssets, allocableCount]);
 
   const fetchDashboardData = async () => {
     try {
@@ -177,19 +196,7 @@ function Dashboard() {
         setStockData(categoryAssetCount);
       }
 
-      // Calculate Allocation Status
-      if (assetArray.length > 0) {
-        const totalAssetCount = assetArray.length;
-        const allocatedCount = allocationArray.length;
-        
-        const allocatedPercent = totalAssetCount > 0 ? Math.round((allocatedCount / totalAssetCount) * 100) : 0;
-        const unallocatedPercent = 100 - allocatedPercent;
-        
-        setAllocationData([
-          { name: 'Assigned', value: allocatedPercent },
-          { name: 'Unassigned', value: unallocatedPercent }
-        ]);
-      }
+      // AllocationData calculation moved to useEffect
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
